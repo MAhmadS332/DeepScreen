@@ -9,8 +9,8 @@ import { LuMail, LuLock } from "react-icons/lu";
 import AuthShowcase from "@/components/auth/AuthShowcase";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("c1@gmail.com");
+  const [password, setPassword] = useState("11221122");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -111,7 +111,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button
+          {/* <button
             onClick={handleGoogleLogin}
             disabled={loading || googleLoading}
             className="w-full py-3 rounded-xl border border-border bg-muted hover:bg-accent text-foreground text-sm font-medium transition-all flex items-center justify-center gap-3 disabled:opacity-50"
@@ -127,7 +127,7 @@ export default function LoginPage() {
               </svg>
             )}
             Continue with Google
-          </button>
+          </button> */}
 
           <div className="mt-6 text-center space-y-1.5">
             <p className="text-sm text-foreground/40">
