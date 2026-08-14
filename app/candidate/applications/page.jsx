@@ -20,6 +20,12 @@ import Link from 'next/link';
 import StageBadge from '@/components/applications/StageBadge';
 import ScoreBar from '@/components/applications/ScoreBar';
 
+// shadcn/ui
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+
 const STAGE_LABELS = {
     applied: 'Application Received',
     shortlisted: 'Shortlisted by AI',
@@ -37,7 +43,7 @@ function ScoreBreakdown({ stageResults }) {
     const sr = stageResults?.shortlist;
     if (!sr) return null;
     return (
-        <div className="mt-4 p-4 rounded-2xl bg-secondary/50 border border-emerald-500/10 space-y-3">
+        <div className="mt-4 p-4 rounded-2xl bg-card border-emerald-500/10 space-y-3">
             <p className="text-xs font-bold opacity-50">AI Match Breakdown</p>
             <ScoreBar label="Skills" value={sr.skills_score ?? 0} color="bg-emerald-500" />
             <ScoreBar label="Work Experience" value={sr.workexp_score ?? 0} color="bg-blue-500" />
@@ -61,8 +67,8 @@ function ApplicationCard({ app, index }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="glass rounded-2xl border border-emerald-500/10 hover:border-emerald-500/25 transition-all overflow-hidden"
         >
+        <Card className="glass rounded-2xl bg-card border-emerald-500/10 hover:border-emerald-500/25 transition-all overflow-hidden p-0 gap-0">
             {/* Card Header */}
             <div className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div className="flex items-center gap-5 flex-1 min-w-0">
@@ -93,11 +99,13 @@ function ApplicationCard({ app, index }) {
 
                 <div className="flex flex-wrap items-center gap-4 shrink-0">
                     {hasScore && (
-                        <div className="text-center">
-                            <div className="text-xs font-bold opacity-40">AI Score</div>
-                            <div className="text-xl font-bold text-emerald-500 mt-0.5">
+                        <div className="flex flex-col items-center gap-1">
+                            <span className="text-xl font-bold text-emerald-500">
                                 {(app.shortlist_score * 100).toFixed(0)}%
-                            </div>
+                            </span>
+                            <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                                AI Score
+                            </Badge>
                         </div>
                     )}
 
@@ -110,12 +118,14 @@ function ApplicationCard({ app, index }) {
                     </div>
 
                     {/* Expand toggle */}
-                    <button
+                    <Button
+                        variant="secondary"
+                        size="icon"
                         onClick={() => setExpanded(x => !x)}
-                        className="p-2 rounded-xl bg-secondary hover:bg-secondary/80 border border-border transition-all"
+                        className="rounded-xl"
                     >
                         {expanded ? <HiOutlineChevronUp className="w-4 h-4" /> : <HiOutlineChevronDown className="w-4 h-4" />}
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -128,7 +138,7 @@ function ApplicationCard({ app, index }) {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden border-t border-emerald-500/5"
                     >
-                        <div className="p-6 bg-secondary/20 space-y-4">
+                        <div className="p-6 bg-card space-y-4">
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 <div>
                                     <p className="text-xs font-bold opacity-40">Status</p>
@@ -156,10 +166,9 @@ function ApplicationCard({ app, index }) {
                                         <HiOutlineBeaker className="w-5 h-5 text-yellow-500" />
                                         <p className="text-sm font-bold text-yellow-500">You have a coding assessment waiting!</p>
                                     </div>
-                                    <Link href="/candidate/assessments"
-                                        className="px-4 py-2 rounded-xl bg-yellow-500 text-black text-xs font-bold shrink-0 hover:bg-yellow-400 transition-all">
-                                        Take Test →
-                                    </Link>
+                                    <Button as-child='true' size="sm" className="rounded-xl bg-yellow-500 text-black hover:bg-yellow-400 shrink-0">
+                                        <Link href="/candidate/assessments">Take Test →</Link>
+                                    </Button>
                                 </div>
                             )}
 
@@ -170,12 +179,13 @@ function ApplicationCard({ app, index }) {
                                         <HiOutlineChatBubbleLeftRight className="w-5 h-5 text-blue-500" />
                                         <p className="text-sm font-bold text-blue-500">You can message the recruiter.</p>
                                     </div>
-                                    <button 
+                                    <Button
+                                        size="sm"
                                         onClick={handleStartChat}
-                                        className="px-4 py-2 rounded-xl bg-blue-500 text-white text-xs font-bold shrink-0 hover:bg-blue-600 transition-all"
+                                        className="rounded-xl bg-blue-500 text-white hover:bg-blue-600 shrink-0"
                                     >
                                         Message →
-                                    </button>
+                                    </Button>
                                 </div>
                             )}
 
@@ -190,6 +200,7 @@ function ApplicationCard({ app, index }) {
                     </motion.div>
                 )}
             </AnimatePresence>
+        </Card>
         </motion.div>
     );
 }
@@ -221,36 +232,36 @@ export default function CandidateApplicationsPage() {
         : applications.filter(a => a.current_stage === filter || a.status === filter);
 
     if (loading) return (
-        <div className="w-full px-4 md:px-8 space-y-8 animate-pulse">
+        <div className="w-full px-4 md:px-8 space-y-8">
             <div>
-                <div className="h-8 w-48 bg-secondary rounded-lg" />
-                <div className="h-4 w-72 bg-secondary rounded mt-2" />
+                <Skeleton className="h-8 w-48 rounded-lg" />
+                <Skeleton className="h-4 w-72 rounded mt-2" />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[...Array(4)].map((_, i) => (
-                    <div key={i} className="rounded-2xl border border-border p-5 text-center">
-                        <div className="h-8 w-16 bg-secondary rounded mx-auto" />
-                        <div className="h-3 w-20 bg-secondary rounded mt-2 mx-auto" />
-                    </div>
+                    <Card key={i} className="p-5 text-center gap-2">
+                        <Skeleton className="h-8 w-16 rounded mx-auto" />
+                        <Skeleton className="h-3 w-20 rounded mx-auto" />
+                    </Card>
                 ))}
             </div>
             <div className="flex gap-2">
                 {[...Array(5)].map((_, i) => (
-                    <div key={i} className="h-9 w-24 bg-secondary rounded-xl" />
+                    <Skeleton key={i} className="h-9 w-24 rounded-xl" />
                 ))}
             </div>
             <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
-                    <div key={i} className="rounded-2xl border border-border p-6">
+                    <Card key={i} className="p-6">
                         <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 rounded-2xl bg-secondary shrink-0" />
+                            <Skeleton className="w-14 h-14 rounded-2xl shrink-0" />
                             <div className="flex-1 space-y-2">
-                                <div className="h-5 w-56 bg-secondary rounded" />
-                                <div className="h-4 w-72 bg-secondary rounded" />
+                                <Skeleton className="h-5 w-56 rounded" />
+                                <Skeleton className="h-4 w-72 rounded" />
                             </div>
-                            <div className="h-10 w-24 bg-secondary rounded-xl" />
+                            <Skeleton className="h-10 w-24 rounded-xl" />
                         </div>
-                    </div>
+                    </Card>
                 ))}
             </div>
         </div>
@@ -271,10 +282,10 @@ export default function CandidateApplicationsPage() {
                         { label: 'Tests Pending', value: pendingTests, color: 'text-yellow-500' },
                         { label: 'Shortlisted', value: applications.filter(a => a.current_stage === 'shortlisted').length, color: 'text-emerald-500' },
                     ].map(({ label, value, color }) => (
-                        <div key={label} className="glass p-5 rounded-2xl border border-emerald-500/10 text-center">
+                        <Card key={label} className="glass p-5 rounded-2xl border-emerald-500/10 text-center gap-1">
                             <div className={`text-3xl font-bold ${color}`}>{value}</div>
                             <div className="text-xs font-semibold opacity-50 mt-1">{label}</div>
-                        </div>
+                        </Card>
                     ))}
                 </div>
             )}
@@ -285,29 +296,33 @@ export default function CandidateApplicationsPage() {
 
             <div className="flex gap-2 flex-wrap">
                 {['all', 'applied', 'shortlisted', 'coding_pending', 'rejected'].map(f => (
-                    <button key={f} onClick={() => setFilter(f)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${filter === f ? 'bg-primary text-primary-foreground shadow-lg shadow-emerald-600/20' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                            }`}>
+                    <Button
+                        key={f}
+                        size="sm"
+                        variant={filter === f ? 'default' : 'secondary'}
+                        onClick={() => setFilter(f)}
+                        className={`rounded-xl text-xs font-bold capitalize ${filter === f ? 'shadow-lg shadow-emerald-600/20' : ''}`}
+                    >
                         {f === 'all' ? `All (${applications.length})` : f.replace(/_/g, ' ')}
-                    </button>
+                    </Button>
                 ))}
             </div>
 
             <div className="space-y-4">
                 {filtered.map((app, i) => <ApplicationCard key={app.application_id} app={app} index={i} />)}
                 {filtered.length === 0 && !loading && (
-                    <div className="py-24 text-center glass rounded-3xl border-dashed border-2 border-border">
+                    <Card className="py-24 text-center glass rounded-3xl border-dashed border-2">
                         <HiOutlineDocumentText className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-20" />
                         <h3 className="text-xl font-bold">No Applications</h3>
                         <p className="text-muted-foreground mt-2 mb-8">
                             {filter === 'all' ? "You haven't applied to any jobs yet." : `No applications in the "${filter}" stage.`}
                         </p>
                         {filter === 'all' && (
-                            <Link href="/jobs" className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-2xl">
-                                Browse Jobs
-                            </Link>
+                            <Button as-child='true' size="lg" className="rounded-2xl w-fit mx-auto">
+                                <Link href="/jobs">Browse Jobs</Link>
+                            </Button>
                         )}
-                    </div>
+                    </Card>
                 )}
             </div>
         </div>

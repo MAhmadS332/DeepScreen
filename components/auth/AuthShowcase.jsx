@@ -81,7 +81,6 @@ export default function AuthShowcase() {
                 <div className="text-sm font-semibold text-foreground">{f.label}</div>
                 <div className="text-xs text-foreground/40">{f.desc}</div>
               </div>
-              <LuArrowRight className="w-4 h-4 text-foreground/30 ml-auto group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
             </motion.div>
           ))}
         </div>

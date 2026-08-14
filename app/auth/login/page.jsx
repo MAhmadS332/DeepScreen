@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import {useRef, useState} from "react";
 import { useAuth } from "@/context/authStore";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { api } from "@/utils/api";
-import { LuMail, LuLock } from "react-icons/lu";
+import { LuMail, LuLock, LuLockOpen } from "react-icons/lu";
 import AuthShowcase from "@/components/auth/AuthShowcase";
 
 export default function LoginPage() {
@@ -14,7 +14,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
+
+  const passRef = useRef("");
+  const togglePassword = () => {
+    setShowPassword(!showPassword);
+    passRef.current.focus();
+  };
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
@@ -39,6 +46,7 @@ export default function LoginPage() {
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
+
       setLoading(false);
     }
   };
@@ -79,16 +87,21 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="relative">
-              <LuLock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/30" />
+            <div className="relative w-full">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
+                ref={passRef}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted border border-border text-foreground placeholder-muted-foreground/50 focus:border-emerald-500/50 focus:bg-emerald-500/5 outline-none transition-all text-sm"
                 placeholder="Password"
                 required
               />
+
+
+              <button type={'button'} onClick={togglePassword} className="absolute right-4 top-1/2 p-2 -translate-y-1/2 text-foreground/30 hover:text-foreground">
+                {showPassword ? <LuLockOpen /> : <LuLock />}
+              </button>
             </div>
 
             <button
@@ -111,7 +124,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* <button
+          <button
             onClick={handleGoogleLogin}
             disabled={loading || googleLoading}
             className="w-full py-3 rounded-xl border border-border bg-muted hover:bg-accent text-foreground text-sm font-medium transition-all flex items-center justify-center gap-3 disabled:opacity-50"
@@ -127,7 +140,7 @@ export default function LoginPage() {
               </svg>
             )}
             Continue with Google
-          </button> */}
+          </button>
 
           <div className="mt-6 text-center space-y-1.5">
             <p className="text-sm text-foreground/40">

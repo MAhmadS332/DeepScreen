@@ -39,9 +39,6 @@ export default function Home() {
           <h1 className="text-4xl font-extrabold tracking-tight text-white">
             Deep<span className="text-emerald-400">Screen</span>
           </h1>
-          <p className="text-emerald-400/60 text-sm font-semibold mt-2 tracking-widest uppercase">
-            Authenticating
-          </p>
         </div>
 
         {/* Spinner */}

@@ -5,7 +5,7 @@ import { useAuth } from "@/context/authStore";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  LuMail, LuLock, LuUser, LuArrowRight, LuArrowLeft, LuCheck,
+  LuMail, LuLock, LuLockOpen, LuUser, LuArrowRight, LuArrowLeft, LuCheck,
   LuBuilding2, LuBriefcase,
 } from "react-icons/lu";
 import AuthShowcase from "@/components/auth/AuthShowcase";
@@ -32,12 +32,17 @@ const steps = [
 export default function RegisterPage() {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState("candidate");
-  const [formData, setFormData] = useState({ email: "", password: "", code: "", first_name: "", last_name: "" });
+  const [formData, setFormData] = useState({ email: "", password: "", re_password: "", code: "", first_name: "", last_name: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRePassword, setShowRePassword] = useState(false);
   const { requestCode, register } = useAuth();
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const togglePassword = () => setShowPassword(!showPassword);
+  const toggleRePassword = () => setShowRePassword(!showRePassword);
 
   const handleRequestCode = async (e) => {
     e.preventDefault();
@@ -47,21 +52,36 @@ export default function RegisterPage() {
       await requestCode(formData.email);
       setStep(3);
     } catch (err) {
-      setError(err.message || "Failed to send code");
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  const matchPassword = (password, re_password, setError) => {
+    if (password !== re_password) {
+      console.log("Passwords do not match");
+      setError("Passwords do not match");
+      return false;
+    }
+    return true;
+  }
+
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (!matchPassword(formData.password, formData.re_password, setError)) {
+      return;
+    }
+
     setError("");
     setLoading(true);
+    let { re_password, ...userRegData } = formData;
     try {
-      await register({ ...formData, role });
+      await register({ ...userRegData, role });
       window.location.href = "/users/profile/";
     } catch (err) {
-      setError(err.message || "Registration failed");
+      setError(err.message.split(":")[1] || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -83,13 +103,12 @@ export default function RegisterPage() {
               className="flex flex-col items-center gap-1 group"
             >
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
-                  isDone
-                    ? "bg-emerald-500 border-emerald-500 text-white"
-                    : isCurrent
-                      ? "border-emerald-500 text-emerald-400 bg-emerald-500/10"
-                      : "border-border text-foreground/30 bg-muted"
-                } ${num < step ? "cursor-pointer hover:border-emerald-400" : "cursor-default"}`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${isDone
+                  ? "bg-emerald-500 border-emerald-500 text-white"
+                  : isCurrent
+                    ? "border-emerald-500 text-emerald-400 bg-emerald-500/10"
+                    : "border-border text-foreground/30 bg-muted"
+                  } ${num < step ? "cursor-pointer hover:border-emerald-400" : "cursor-default"}`}
               >
                 {isDone ? <LuCheck className="w-5 h-5" /> : <span>{num}</span>}
               </div>
@@ -126,7 +145,7 @@ export default function RegisterPage() {
               {step === 1 ? "Choose your role to begin" : step === 2 ? "Enter your email address" : `Code sent to ${formData.email}`}
             </p>
           </div>
-
+ 
           <StepIndicator />
 
           <AnimatePresence mode="wait">
@@ -146,15 +165,13 @@ export default function RegisterPage() {
                       <button
                         key={r.value}
                         onClick={() => setRole(r.value)}
-                        className={`p-4 rounded-xl border text-left transition-all ${
-                          active
-                            ? "bg-emerald-500/10 border-emerald-500/40 ring-1 ring-emerald-500/20"
-                            : "bg-muted border-border hover:border-foreground/20"
-                        }`}
+                        className={`p-4 rounded-xl border text-left transition-all ${active
+                          ? "bg-emerald-500/10 border-emerald-500/40 ring-1 ring-emerald-500/20"
+                          : "bg-muted border-border hover:border-foreground/20"
+                          }`}
                       >
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 ${
-                          active ? "bg-emerald-500/20" : "bg-background"
-                        }`}>
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 ${active ? "bg-emerald-500/20" : "bg-background"
+                          }`}>
                           <Icon className={`w-6 h-6 ${active ? "text-emerald-400" : "text-foreground/50"}`} />
                         </div>
                         <p className="text-sm font-bold text-foreground mb-0.5">{r.label}</p>
@@ -328,17 +345,38 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-foreground/50 ml-1 uppercase tracking-wider">Password</label>
                   <div className="relative">
-                    <LuLock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/30" />
                     <input
-                      name="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={formData.password}
-                      onChange={handleChange}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted border border-border text-foreground placeholder-muted-foreground/50 focus:border-emerald-500/50 focus:bg-emerald-500/5 outline-none transition-all text-sm"
-                      placeholder="••••••••"
+                      placeholder="Password"
                       required
                     />
+
+
+                    <button type={'button'} onClick={togglePassword} className="absolute right-4 top-1/2 p-2 -translate-y-1/2 text-foreground/30 hover:text-foreground">
+                      {showPassword ? <LuLockOpen /> : <LuLock />}
+                    </button>
                   </div>
+
+
+
+                  <label className="text-xs font-semibold text-foreground/50 ml-1 uppercase tracking-wider">Retype Password</label>
+                  <div className="relative">
+                    <input
+                      type={showRePassword ? "text" : "password"}
+                      value={formData.re_password}
+                      onChange={(e) => setFormData({ ...formData, re_password: e.target.value })}
+                      className="w-full pl-12 pr-4 py-3 rounded-xl bg-muted border border-border text-foreground placeholder-muted-foreground/50 focus:border-emerald-500/50 focus:bg-emerald-500/5 outline-none transition-all text-sm"
+                      placeholder="Retype Password"
+                      required
+                    />
+                    <button type={'button'} onClick={toggleRePassword} className="absolute right-4 top-1/2 p-2 -translate-y-1/2 text-foreground/30 hover:text-foreground">
+                      {showRePassword ? <LuLockOpen /> : <LuLock />}
+                    </button>
+                  </div>
+
                 </div>
 
                 <div className="flex gap-3 pt-1">
@@ -359,6 +397,7 @@ export default function RegisterPage() {
                     {!loading && <LuCheck className="w-5 h-5" />}
                   </button>
                 </div>
+
               </motion.form>
             )}
           </AnimatePresence>
@@ -383,6 +422,6 @@ export default function RegisterPage() {
       </div>
 
       <AuthShowcase />
-    </div>
+    </div >
   );
 }

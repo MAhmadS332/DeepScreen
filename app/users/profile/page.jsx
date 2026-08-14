@@ -1,340 +1,449 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { api } from '@/utils/api';
-import { useAuth } from '@/context/AuthContext';
-import { motion } from 'motion/react';
+import React, {useEffect, useState} from 'react';
+import {api} from '@/utils/api';
+import {useAuth} from '@/context/AuthContext';
+import Link from 'next/link';
+import {cn} from '@/lib/utils';
 import {
-  HiOutlinePencilSquare, HiOutlineCheck, HiOutlineXMark,
-  HiOutlineGlobeAlt, HiOutlineEnvelope, HiOutlinePhone,
-  HiOutlineUser, HiOutlineSparkles, HiOutlineCalendarDays,
-  HiOutlineShieldCheck,
+    HiOutlinePencilSquare,
+    HiOutlineCheck,
+    HiOutlineXMark,
+    HiOutlineGlobeAlt,
+    HiOutlineEnvelope,
+    HiOutlinePhone,
+    HiOutlineArrowRight,
+    HiOutlineDocumentDuplicate,
+    HiOutlineClock,
 } from 'react-icons/hi2';
+import Image from 'next/image';
+import ProfilePageSkeleton from '@/components/users/ProfileSkeleton';
+
+function Chip({children, tone = 'neutral', className}) {
+    const tones = {
+        neutral: 'border-border/70 bg-background/70 text-muted-foreground',
+        emerald: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+        cyan: 'border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300',
+        white: 'border-white/20 bg-white/10 text-white',
+    };
+
+    return (
+        <span
+            className={cn('inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em]', tones[tone], className)}>
+      {children}
+    </span>
+    );
+}
+
+function ActionButton({children, variant = 'primary', className, ...props}) {
+    const styles = {
+        primary: 'border border-primary/20 bg-primary text-primary-foreground shadow-sm shadow-emerald-500/15 hover:bg-primary/90',
+        ghost: 'border border-border/70 bg-background/70 text-foreground hover:bg-muted/70',
+        white: 'border border-white/15 bg-white/10 text-white hover:bg-white/15',
+    };
+
+    return (
+        <button
+            {...props}
+            className={cn('inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition-all hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-50', styles[variant], className)}
+        >
+            {children}
+        </button>
+    );
+}
+
+function Shell({className, children}) {
+    return (
+        <section
+            className={cn('overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/80 shadow-sm backdrop-blur', className)}>
+            {children}
+        </section>
+    );
+}
+
+function SectionShell({title, subtitle, action, children, className}) {
+    return (
+        <Shell className={className}>
+            <div className="p-5 md:p-6 lg:p-7">
+                <div className="mb-5 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">{subtitle}</p>
+                        <h3 className="mt-1 text-base md:text-lg font-semibold tracking-tight">{title}</h3>
+                    </div>
+                    {action}
+                </div>
+                {children}
+            </div>
+        </Shell>
+    );
+}
+
+function InfoField({icon: Icon, label, value, editing, onChange, placeholder, type = 'text', multiline = false}) {
+    return (
+        <div className="space-y-2">
+            <label
+                className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{label}</label>
+            {editing ? (
+                multiline ? (
+                    <textarea
+                        value={value}
+                        onChange={onChange}
+                        placeholder={placeholder}
+                        className="min-h-45 w-full rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm outline-none transition-colors focus:border-primary/30 focus:bg-background resize-none"
+                    />
+                ) : (
+                    <input
+                        type={type}
+                        value={value}
+                        onChange={onChange}
+                        placeholder={placeholder}
+                        className="w-full rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm outline-none transition-colors focus:border-primary/30 focus:bg-background"
+                    />
+                )
+            ) : (
+                <div
+                    className="flex items-center gap-2 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm">
+                    {Icon && <Icon className="h-4 w-4 text-primary"/>}
+                    <span className="min-w-0 truncate text-foreground/90">{value || 'Not provided'}</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function ProfileStat({label, value, icon: Icon, tone = 'emerald'}) {
+    const tones = {
+        emerald: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+        cyan: 'border-cyan-500/20 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400',
+        violet: 'border-violet-500/20 bg-violet-500/10 text-violet-600 dark:text-violet-400',
+    };
+
+    return (
+        <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+            <div className="flex items-start justify-between gap-3">
+                <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
+                    <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
+                </div>
+                <div className={cn('grid size-10 place-items-center rounded-2xl border', tones[tone])}>
+                    <Icon className="size-4"/>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default function ProfilePage() {
-  const { user } = useAuth();
-  const role = user?.role || 'CANDIDATE';
+    const {user} = useAuth();
+    const role = user?.role || 'CANDIDATE';
 
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    first_name: '', last_name: '', bio: '', phone: '', extra_data: {}
-  });
-  const [newLink, setNewLink] = useState({ key: '', value: '' });
+    const [profile, setProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [formData, setFormData] = useState({
+        first_name: '',
+        last_name: '',
+        bio: '',
+        phone: '',
+        extra_data: {},
+    });
+    const [newLink, setNewLink] = useState({key: '', value: ''});
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await api.get('/accounts/profiles/me/');
-        setProfile(data);
-        setFormData({
-          first_name: data.first_name || '',
-          last_name: data.last_name || '',
-          bio: data.bio || '',
-          phone: data.phone || '',
-          extra_data: data.extra_data || {}
-        });
-      } catch (err) {
-        console.error('Failed to fetch profile', err);
-      } finally {
-        setLoading(false);
-      }
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const profileData = await api.get('/accounts/profiles/me/');
+
+                setProfile(profileData);
+                setFormData({
+                    first_name: profileData.first_name || '',
+                    last_name: profileData.last_name || '',
+                    bio: profileData.bio || '',
+                    phone: profileData.phone || '',
+                    extra_data: profileData.extra_data || {},
+                });
+            } catch (err) {
+                console.error('Failed to fetch profile', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (user) fetchProfile();
+    }, [user]);
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const data = await api.put('/accounts/profiles/me/', formData);
+            setProfile(data);
+            setFormData({
+                first_name: data.first_name || '',
+                last_name: data.last_name || '',
+                bio: data.bio || '',
+                phone: data.phone || '',
+                extra_data: data.extra_data || {},
+            });
+            setIsEditing(false);
+        } catch (err) {
+            alert('Failed to save profile');
+        } finally {
+            setSaving(false);
+        }
     };
-    if (user) fetchProfile();
-  }, [user]);
 
-  const handleSave = async () => {
-    try {
-      const data = await api.put('/accounts/profiles/me/', formData);
-      setProfile(data);
-      setIsEditing(false);
-    } catch (err) {
-      alert('Failed to save profile');
-    }
-  };
+    const handleCancel = () => {
+        setFormData({
+            first_name: profile?.first_name || '',
+            last_name: profile?.last_name || '',
+            bio: profile?.bio || '',
+            phone: profile?.phone || '',
+            extra_data: profile?.extra_data || {},
+        });
+        setNewLink({key: '', value: ''});
+        setIsEditing(false);
+    };
 
-  const addLink = () => {
-    if (newLink.key && newLink.value) {
-      setFormData({
-        ...formData,
-        extra_data: { ...formData.extra_data, [newLink.key]: newLink.value }
-      });
-      setNewLink({ key: '', value: '' });
-    }
-  };
+    const addLink = () => {
+        if (!newLink.key || !newLink.value) return;
 
-  const removeLink = (key) => {
-    const updated = { ...formData.extra_data };
-    delete updated[key];
-    setFormData({ ...formData, extra_data: updated });
-  };
+        setFormData({
+            ...formData,
+            extra_data: {...formData.extra_data, [newLink.key]: newLink.value},
+        });
+        setNewLink({key: '', value: ''});
+    };
 
-  if (loading) {
+    const removeLink = (key) => {
+        const updated = {...formData.extra_data};
+        delete updated[key];
+        setFormData({...formData, extra_data: updated});
+    };
+
+    const displayName = profile?.first_name || profile?.last_name
+        ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+        : 'Your Profile';
+    const links = Object.entries(isEditing ? formData.extra_data : (profile?.extra_data || {}));
+    const hasLinks = links.length > 0;
+    const lastUpdated = profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString() : 'New profile';
+
+
+    if (loading) return <ProfilePageSkeleton/>;
+
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-emerald-500" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full px-4 md:px-6 space-y-10 pb-12">
-      {/* Hero Banner */}
-      <div className="w-full">
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="lg:w-[70%] relative overflow-hidden bg-slate-900 rounded-2xl p-8 lg:p-10 text-white min-h-[200px] flex flex-col justify-between">
-            <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
-              <svg viewBox="0 0 400 400" className="w-full h-full rotate-12">
-                <path d="M0 0 L400 0 L400 400 Z" fill="currentColor" />
-              </svg>
-            </div>
-            <div className="relative z-10 flex items-center gap-6">
-              <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl bg-white/10 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
-                {user?.google_picture ? (
-                  <img src={user.google_picture} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-3xl lg:text-4xl font-bold text-emerald-400">
-                    {user?.email?.[0]?.toUpperCase() || '?'}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-2 min-w-0">
-                <h1 className="text-2xl lg:text-4xl font-bold tracking-tight leading-[1.1]">
-                  {profile?.first_name || profile?.last_name
-                    ? `${profile.first_name || ''} ${profile.last_name || ''}`
-                    : 'Your Profile'}
-                </h1>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
-                  <span className="flex items-center gap-1.5">
-                    <HiOutlineEnvelope className="w-4 h-4" />
-                    {user?.email}
-                  </span>
-                  <span className="w-1 h-1 rounded-full bg-slate-600" />
-                  <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
-                    {role}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="relative z-10 flex justify-end">
-              {isEditing ? (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all flex items-center gap-1.5 backdrop-blur-sm"
-                  >
-                    <HiOutlineXMark className="w-4 h-4" /> Cancel
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs transition-all flex items-center gap-1.5"
-                  >
-                    <HiOutlineCheck className="w-4 h-4" /> Save
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all flex items-center gap-1.5 backdrop-blur-sm"
-                >
-                  <HiOutlinePencilSquare className="w-4 h-4" /> Edit
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="lg:w-[30%] bg-emerald-500 rounded-2xl p-8 text-white flex flex-col justify-between shadow-xl shadow-emerald-500/20 dark:shadow-emerald-500/10">
-            <div className="flex justify-between items-start">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
-                <HiOutlineSparkles className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full">
-                {profile?.updated_at ? 'Active' : 'New'}
-              </span>
-            </div>
-            <div>
-              <p className="text-5xl font-bold mb-1">
-                {profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString().slice(0, 2) : '--'}
-              </p>
-              <p className="text-emerald-100 font-bold text-sm uppercase tracking-widest">
-                {profile?.updated_at ? `Updated ${new Date(profile.updated_at).toLocaleDateString()}` : 'Complete Your Profile'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
 
+        <div className="relative mx-auto w-full max-w-5xl px-4 py-4 pb-12 md:px-6 lg:px-8 lg:py-8">
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          {/* About Me */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-border bg-card p-8"
-          >
-            <h3 className="font-bold text-lg mb-6">About Me</h3>
-            {isEditing ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    value={formData.first_name}
-                    onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border focus:border-emerald-500 outline-none text-sm"
-                    placeholder="First Name"
-                  />
-                  <input
-                    value={formData.last_name}
-                    onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border focus:border-emerald-500 outline-none text-sm"
-                    placeholder="Last Name"
-                  />
-                </div>
-                <textarea
-                  value={formData.bio}
-                  onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                  className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border focus:border-emerald-500 outline-none min-h-[120px] resize-none text-sm"
-                  placeholder="Tell us about yourself..."
-                />
-              </div>
-            ) : (
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                {profile?.bio || 'No bio provided yet.'}
-              </p>
-            )}
-          </motion.div>
 
-          {/* Links & Portfolio */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="rounded-xl border border-border bg-card p-8"
-          >
-            <h3 className="font-bold text-lg mb-6">Links & Portfolio</h3>
-            {Object.entries(isEditing ? formData.extra_data : (profile?.extra_data || {})).length === 0 && !isEditing ? (
-              <p className="text-muted-foreground text-sm">No links added yet.</p>
-            ) : (
-              <div className="flex flex-wrap gap-3">
-                {Object.entries(isEditing ? formData.extra_data : (profile?.extra_data || {})).map(([key, value]) => (
-                  <div key={key} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-emerald-500 text-sm font-medium group">
-                    <HiOutlineGlobeAlt className="w-4 h-4" />
-                    <span className="capitalize">{key}:</span>
-                    <a href={value.startsWith('http') ? value : `https://${value}`} target="_blank" rel="noopener noreferrer" className="hover:underline truncate max-w-[200px]">{value}</a>
-                    {isEditing && (
-                      <button onClick={() => removeLink(key)} className="ml-1 hover:text-red-500 transition-colors">
-                        <HiOutlineXMark className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {isEditing && (
-              <div className="flex gap-2 items-center mt-6 pt-6 border-t border-border">
-                <input
-                  placeholder="Label (e.g. LinkedIn)"
-                  value={newLink.key}
-                  onChange={(e) => setNewLink({...newLink, key: e.target.value})}
-                  className="w-1/3 px-4 py-2.5 rounded-xl bg-secondary/50 border border-border outline-none text-sm"
-                />
-                <input
-                  placeholder="URL"
-                  value={newLink.value}
-                  onChange={(e) => setNewLink({...newLink, value: e.target.value})}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-secondary/50 border border-border outline-none text-sm"
-                />
-                <button
-                  onClick={addLink}
-                  className="p-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-all"
-                >
-                  <HiOutlineCheck className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="rounded-xl border border-border bg-card p-8"
-          >
-            <h3 className="font-bold text-base mb-6 flex items-center gap-2">
-              <HiOutlineUser className="w-4 h-4 text-emerald-500" />
-              Contact Info
-            </h3>
             <div className="space-y-6">
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1.5">Phone</label>
-                {isEditing ? (
-                  <input
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-4 py-2.5 rounded-xl bg-secondary/50 border border-border outline-none text-sm"
-                    placeholder="+1 234 567 890"
-                  />
-                ) : (
-                  <p className="font-medium text-sm flex items-center gap-2">
-                    <HiOutlinePhone className="w-4 h-4 text-emerald-500" />
-                    {profile?.phone || 'Not provided'}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1.5">Email</label>
-                <p className="font-medium text-sm flex items-center gap-2">
-                  <HiOutlineEnvelope className="w-4 h-4 text-emerald-500" />
-                  {user?.email}
-                </p>
-              </div>
-            </div>
-          </motion.div>
+                <Shell
+                    className="overflow-hidden border-border/70 bg-card/70 shadow-[0_20px_64px_-48px_rgba(16,185,129,0.34)]">
+                    <div className="relative overflow-hidden p-4 md:p-5">
+                        <div
+                            className="absolute inset-0 bg-[linear-gradient(135deg,rgba(16,185,129,0.10),transparent_40%,rgba(6,182,212,0.08)_72%,transparent_100%)]"/>
+                        <div className="absolute -right-16 top-0 h-36 w-36 rounded-full bg-emerald-500/10 blur-3xl"/>
+                        <div className="relative space-y-5">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Chip tone="neutral">{role}</Chip>
+                            </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="rounded-xl border border-border bg-card p-8"
-          >
-            <h3 className="font-bold text-base mb-6 flex items-center gap-2">
-              <HiOutlineCalendarDays className="w-4 h-4 text-emerald-500" />
-              Activity
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Last Updated</span>
-                <span className="font-bold">{profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString() : 'N/A'}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Member Since</span>
-                <span className="font-bold">{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</span>
-              </div>
-            </div>
-          </motion.div>
+                            <div className="grid gap-4 md:grid-cols-[auto_1fr] md:items-center">
+                                <div
+                                    className="relative flex size-20 items-center justify-center overflow-hidden rounded-[1.5rem] border border-border/70 bg-background/80 shadow-sm sm:size-24">
+                                    {profile?.avatar_url || user?.google_picture ? (
+                                        <img src={profile?.avatar_url || user.google_picture} alt="Avatar"
+                                             className="h-full w-full object-cover" height={80} width={80}/>
+                                    ) : (
+                                        <span className="text-4xl font-semibold tracking-tight text-primary">
+                      {user?.email?.[0]?.toUpperCase() || '?'}
+                    </span>
+                                    )}
+                                    <span
+                                        className="absolute bottom-2 right-2 size-3 rounded-full border border-background bg-emerald-400 shadow-[0_0_0_4px_rgba(16,185,129,0.15)]"/>
+                                </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-8"
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <HiOutlineShieldCheck className="w-5 h-5 text-emerald-500" />
-              <h3 className="font-bold text-base">Account</h3>
+                                <div className="space-y-4">
+                                    <div className="space-y-3">
+                                        <h1 className="max-w-2xl text-2xl font-semibold tracking-tight md:text-3xl">{displayName}</h1>
+
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    <span
+                        className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1.5">
+                      <HiOutlineEnvelope className="h-4 w-4 text-primary"/>
+                      <span className="truncate">{profile?.user?.email || user?.email}</span>
+                    </span>
+                                        <span
+                                            className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1.5">
+                      <HiOutlineClock className="h-4 w-4 text-primary"/>
+                      <span>{lastUpdated}</span>
+                    </span>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                        {isEditing ? (
+                                            <>
+                                                <ActionButton variant="primary" onClick={handleSave} disabled={saving}>
+                                                    <HiOutlineCheck className="h-4 w-4"/>
+                                                    {saving ? 'Saving...' : 'Save changes'}
+                                                </ActionButton>
+                                                <ActionButton variant="ghost" onClick={handleCancel} disabled={saving}>
+                                                    <HiOutlineXMark className="h-4 w-4"/>
+                                                    Cancel
+                                                </ActionButton>
+                                            </>
+                                        ) : (
+                                            <ActionButton variant="primary" onClick={() => setIsEditing(true)}>
+                                                <HiOutlinePencilSquare className="h-4 w-4"/>
+                                                Edit profile
+                                            </ActionButton>
+                                        )}
+                                        <Link
+                                            href={role === 'CANDIDATE' ? '/candidate' : '/recruiter'}
+                                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border/70 bg-background/70 px-4 py-2.5 text-sm font-medium transition-all hover:-translate-y-0.5 hover:bg-muted/70"
+                                        >
+                                            <HiOutlineArrowRight className="h-4 w-4"/>
+                                            Back to dashboard
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Shell>
+
+                <SectionShell
+                    subtitle="Story"
+                    title="About me"
+                    action={isEditing ?
+                        <span className="text-xs font-medium text-muted-foreground">Editing enabled</span> : null}
+                >
+                    {isEditing ? (
+                        <div className="space-y-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <InfoField
+                                    label="First name"
+                                    editing
+                                    value={formData.first_name}
+                                    onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                                    placeholder="First name"
+                                />
+                                <InfoField
+                                    label="Last name"
+                                    editing
+                                    value={formData.last_name}
+                                    onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+                                    placeholder="Last name"
+                                />
+                            </div>
+                            <InfoField
+                                label="Bio"
+                                editing
+                                multiline
+                                value={formData.bio}
+                                onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                                placeholder="Tell us about yourself..."
+                            />
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <p className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground md:text-[15px]">
+                                {profile?.bio || 'No bio provided yet.'}
+                            </p>
+
+                        </div>
+                    )}
+                </SectionShell>
+
+                <SectionShell subtitle="Links" title="Links & portfolio"
+                              action={hasLinks ? <Chip tone="neutral">{links.length} saved</Chip> : null}>
+                    {links.length === 0 && !isEditing ? (
+                        <div
+                            className="rounded-2xl border border-dashed border-border/70 bg-muted/20 p-6 text-sm text-muted-foreground">
+                            No links added yet.
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {links.map(([key, value]) => (
+                                <div key={key}
+                                     className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <HiOutlineGlobeAlt className="h-4 w-4 shrink-0 text-primary"/>
+                                            <span
+                                                className="text-sm font-semibold capitalize text-foreground">{key}</span>
+                                        </div>
+                                        <a href={value.startsWith('http') ? value : `https://${value}`} target="_blank"
+                                           rel="noopener noreferrer"
+                                           className="mt-2 block max-w-full truncate text-sm text-muted-foreground hover:underline">
+                                            {value}
+                                        </a>
+                                    </div>
+                                    {isEditing && (
+                                        <button onClick={() => removeLink(key)}
+                                                className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                                                aria-label={`Remove ${key}`}>
+                                            <HiOutlineXMark className="h-4 w-4"/>
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {isEditing && (
+                        <div className="mt-6 rounded-3xl border border-border/70 bg-background/70 p-4">
+                            <div className="grid gap-3 md:grid-cols-[0.9fr_1.2fr_auto] md:items-end">
+                                <InfoField
+                                    label="Label"
+                                    editing
+                                    value={newLink.key}
+                                    onChange={(e) => setNewLink({...newLink, key: e.target.value})}
+                                    placeholder="LinkedIn"
+                                />
+                                <InfoField
+                                    label="URL"
+                                    editing
+                                    value={newLink.value}
+                                    onChange={(e) => setNewLink({...newLink, value: e.target.value})}
+                                    placeholder="https://..."
+                                />
+                                <ActionButton variant="primary" onClick={addLink}>
+                                    <HiOutlineCheck className="h-4 w-4"/>
+                                    Add
+                                </ActionButton>
+                            </div>
+                        </div>
+                    )}
+                </SectionShell>
+
+                <SectionShell subtitle="Contact" title="Contact info">
+                    <div className="space-y-5">
+                        <InfoField
+                            icon={HiOutlinePhone}
+                            label="Phone"
+                            value={isEditing ? formData.phone : profile?.phone}
+                            editing={isEditing}
+                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                            placeholder="+1 234 567 890"
+                        />
+
+                        <div className="space-y-2">
+                            <label
+                                className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Email</label>
+                            <div
+                                className="flex items-center gap-2 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm">
+                                <HiOutlineEnvelope className="h-4 w-4 text-primary"/>
+                                <span className="min-w-0 truncate">{profile?.user?.email || user?.email}</span>
+                            </div>
+                        </div>
+                    </div>
+                </SectionShell>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Your profile information is used across the platform for applications, interviews, and communications.
-            </p>
-          </motion.div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

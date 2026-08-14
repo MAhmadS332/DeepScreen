@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import {
   HiOutlineChevronLeft,
   HiOutlineChevronRight,
+  HiOutlineXMark,
   HiOutlineHome,
   HiOutlineUser,
   HiOutlineChartBar,
@@ -39,7 +40,7 @@ const IconMap = {
   HiOutlineChatBubbleLeftRight, HiOutlineSquares2X2,
 };
 
-export default function Sidebar({ isCollapsed, setIsCollapsed }) {
+export default function Sidebar({ isCollapsed, setIsCollapsed, mobileOpen = false, setMobileOpen }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -61,17 +62,19 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const resolvePath = (itemPath) => orgSlug ? itemPath.replace(':slug', orgSlug) : itemPath;
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    if (stored === "dark") {
-      document.documentElement.classList.add("dark");
-      setDarkMode(true);
-    }
-    setMounted(true);
+    queueMicrotask(() => {
+      const stored = localStorage.getItem("theme");
+      if (stored === "dark") {
+        document.documentElement.classList.add("dark");
+        setDarkMode(true);
+      }
+      setMounted(true);
+    });
   }, []);
 
   // Fetch org for STAFF/RECRUITER
   useEffect(() => {
-    if (!user || !['STAFF', 'RECRUITER'].includes(role)) { setOrg(null); return; }
+    if (!user || !['STAFF', 'RECRUITER'].includes(role)) return;
     api.get('/organizations/').then((data) => {
       if (Array.isArray(data) && data.length > 0) setOrg(data[0]);
       else setOrg(null);
@@ -140,17 +143,37 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     return user.email.split("@")[0];
   };
 
+  const closeMobileSidebar = () => {
+    if (setMobileOpen) setMobileOpen(false);
+  };
+
   return (
     <>
     <motion.aside
-      animate={{ width: isCollapsed ? "80px" : "240px" }}
+      animate={{ width: mobileOpen ? "min(88vw, 20rem)" : isCollapsed ? "80px" : "240px" }}
       transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
-      className="fixed left-0 top-0 h-screen bg-card border-r border-border flex flex-col z-40 shadow-xl overflow-hidden"
+      className={`fixed left-0 top-0 h-dvh bg-card/95 backdrop-blur-xl border-r border-border flex flex-col z-50 shadow-2xl overflow-hidden transform transition-transform duration-300 -translate-x-full lg:translate-x-0 ${mobileOpen ? "translate-x-0" : ""}`}
+      style={{ maxWidth: "calc(100vw - 1rem)" }}
     >
+
+      {/* Mobile Header */}
+      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-4 lg:hidden">
+        <div className="flex items-center gap-3 min-w-0">
+          <img src="/deepscreen.webp" alt="DeepScreen Logo" className="w-8 h-8 object-contain shrink-0" />
+          <span className="font-bold text-lg text-foreground tracking-wide truncate">DeepScreen</span>
+        </div>
+        <button
+          onClick={closeMobileSidebar}
+          className="grid size-10 place-items-center rounded-xl border border-border bg-background/70 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Close sidebar"
+        >
+          <HiOutlineXMark className="w-5 h-5" />
+        </button>
+      </div>
 
       {/* Top Header */}
       <div className="p-4 flex flex-col gap-4 border-b border-border">
-        <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} w-full`}>
+        <div className={`hidden lg:flex items-center ${isCollapsed ? "justify-center" : "justify-between"} w-full`}>
           <div className="flex items-center gap-3">
             <img src="/deepscreen.webp" alt="DeepScreen Logo" className="w-8 h-8 object-contain shrink-0" />
             {!isCollapsed && (
@@ -177,7 +200,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             >
               <HiOutlineChatBubbleLeftRight className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border border-card shadow-sm">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold min-w-4.5 h-4.5 px-1 rounded-full flex items-center justify-center border border-card shadow-sm">
                   {unreadCount}
                 </span>
               )}
@@ -191,6 +214,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       {/* Profile Bar */}
       <Link
         href="/users/profile"
+        onClick={closeMobileSidebar}
         className={`flex items-center ${isCollapsed ? "justify-center px-1" : "gap-3 px-3"} py-2.5 mx-2 my-3 rounded-xl border border-border hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all group`}
         title={isCollapsed ? "Profile" : undefined}
       >
@@ -217,15 +241,16 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       {role === 'STAFF' && (org ? (
         <Link
           href={`/organizations/${org.slug}`}
+          onClick={closeMobileSidebar}
           className={`relative mx-2 rounded-2xl overflow-hidden transition-all duration-300 group ${
             isCollapsed ? "block p-2" : "block"
           }`}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/15 via-emerald-600/5 to-transparent group-hover:from-emerald-500/25 group-hover:via-emerald-600/10 transition-all duration-500" />
+          <div className="absolute inset-0 bg-linear-to-br from-emerald-500/15 via-emerald-600/5 to-transparent group-hover:from-emerald-500/25 group-hover:via-emerald-600/10 transition-all duration-500" />
           <div className="absolute inset-0 border border-emerald-500/20 group-hover:border-emerald-500/40 rounded-2xl transition-all duration-300" />
           {!isCollapsed ? (
             <div className="relative flex items-center gap-3 px-3 py-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-600/30 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-600/30 shrink-0">
                 {org.name[0]}
               </div>
               <div className="flex-1 min-w-0">
@@ -240,7 +265,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             </div>
           ) : (
             <div className="relative flex items-center justify-center">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-600/30">
+              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-600/30">
                 {org.name[0]}
               </div>
             </div>
@@ -249,15 +274,16 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       ) : (
         <Link
           href="/organizations/create"
+          onClick={closeMobileSidebar}
           className={`relative mx-2 rounded-2xl overflow-hidden transition-all duration-300 group ${
             isCollapsed ? "block p-2" : "block"
           }`}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent group-hover:from-emerald-500/20 transition-all duration-500" />
+          <div className="absolute inset-0 bg-linear-to-br from-emerald-500/10 via-transparent to-transparent group-hover:from-emerald-500/20 transition-all duration-500" />
           <div className="absolute inset-0 border border-dashed border-emerald-500/20 group-hover:border-emerald-500/40 rounded-2xl transition-all duration-300" />
           {!isCollapsed ? (
             <div className="relative flex items-center gap-3 px-3 py-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-500/20 to-emerald-600/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 shrink-0">
                 <HiOutlineBuildingOffice2 className="w-4 h-4" />
               </div>
               <span className="text-xs font-bold text-muted-foreground group-hover:text-emerald-400 transition-colors">
@@ -267,7 +293,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             </div>
           ) : (
             <div className="relative flex items-center justify-center">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-emerald-500/20 to-emerald-600/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
                 <HiOutlineBuildingOffice2 className="w-4 h-4" />
               </div>
             </div>
@@ -299,6 +325,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                   <Link
                     key={item.name}
                     href={linkPath}
+                    onClick={closeMobileSidebar}
                     title={isCollapsed ? item.name : undefined}
                     className={`relative flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-3 rounded-xl transition-all duration-300 group ${
                       active
@@ -351,7 +378,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         onClick={() => setIsCollapsed(!isCollapsed)}
         animate={{ left: isCollapsed ? "65px" : "222px" }}
         transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
-        className="fixed top-3 z-50 w-9 h-9 rounded-full hover:bg-card bg-secondary hover:text-muted-foreground text-foreground border-2 border-border transition-colors flex items-center justify-center shadow-md"
+        className="hidden lg:flex fixed top-3 z-50 w-9 h-9 rounded-full hover:bg-card bg-secondary hover:text-muted-foreground text-foreground border-2 border-border transition-colors items-center justify-center shadow-md"
         title={isCollapsed ? "Expand" : "Collapse"}
       >
         {isCollapsed ? <HiOutlineChevronRight className="w-3" /> : <HiOutlineChevronLeft className="w-3" />}
