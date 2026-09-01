@@ -27,7 +27,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={cn("dark", "h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", dmSans.variable, interHeading.variable)}
+      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", dmSans.variable, interHeading.variable)}
       suppressHydrationWarning
     >
       <body className="min-h-full">

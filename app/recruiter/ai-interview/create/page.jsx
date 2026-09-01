@@ -362,7 +362,7 @@ export default function CreateAIInterviewPage() {
                     Direct Parameter Override
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    Manually formulate metrics weights, assessment matrix rules,
+                    Manually formulate metrics weights, assessment metrics rules,
                     and system logic guidelines directly.
                   </p>
                 </button>
@@ -529,7 +529,7 @@ export default function CreateAIInterviewPage() {
                   <div className="mb-2">
                     <h2 className="text-2xl font-extrabold flex items-center gap-2">
                       <HiOutlinePencilSquare className="text-emerald-500" />{" "}
-                      Manual Matrix Configuration
+                      Manual Metrics Configuration
                     </h2>
                     <p className="text-sm text-muted-foreground">
                       Adjust explicit system rules and criteria configurations
@@ -566,7 +566,7 @@ export default function CreateAIInterviewPage() {
                   </div>
                   <div className="space-y-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block pl-1">
-                      SYSTEM MATRIX INSTRUCTIONS
+                      SYSTEM METRICS INSTRUCTIONS
                     </span>
                     <textarea
                       required
@@ -574,7 +574,7 @@ export default function CreateAIInterviewPage() {
                       onChange={(e) =>
                         setForm({ ...form, system_prompt: e.target.value })
                       }
-                      placeholder="System Evaluation Matrix Instructions..."
+                      placeholder="System Evaluation Metrics Instructions..."
                       rows={5}
                       className="w-full px-5 py-4 rounded-xl bg-secondary/40 border border-border focus:border-emerald-500/50 font-mono outline-none text-xs leading-relaxed resize-none transition-all"
                     />
@@ -631,7 +631,7 @@ export default function CreateAIInterviewPage() {
                   </button>
                 </form>
               ) : (
-                /* AI Summary End Matrix View */
+                /* AI Summary End Metrics View */
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-3xl font-extrabold tracking-tight mb-1 flex items-center gap-2">

@@ -167,7 +167,7 @@ export default function JobApplicationsPage({ params }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Total', count: applications.length, icon: HiOutlineUserCircle, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-          { label: 'Shortlisted', count: stageCounts['shzortlisted'] || 0, icon: HiOutlineCheckBadge, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { label: 'Shortlisted', count: stageCounts['shortlisted'] || 0, icon: HiOutlineCheckBadge, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
           { label: 'Pending', count: (stageCounts['applied'] || 0) + (stageCounts['coding_pending'] || 0), icon: HiOutlineClock, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
           { label: 'Rejected', count: stageCounts['rejected'] || 0, icon: HiOutlineXCircle, color: 'text-red-500', bg: 'bg-red-500/10' },
         ].map(({ label, count, icon: Icon, color, bg }) => (

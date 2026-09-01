@@ -202,7 +202,7 @@ export default function ApplicationPage({ params }) {
                           <HiOutlineDocumentText className="w-6 h-6" />
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-base font-bold text-foreground truncate group-hover:text-emerald-500 transition-colors">
+                          <h3 className="text-base font-bold text-foreground break-after-all group-hover:text-emerald-500 transition-colors">
                             {resume.title || "Untitled Resume"}
                           </h3>
                           <div className="flex items-center gap-3 text-[10px] font-semibold text-muted-foreground mt-0.5">
@@ -289,8 +289,7 @@ export default function ApplicationPage({ params }) {
                         </div>
                         <div>
                           <p className="text-sm font-bold text-foreground">
-                            {getMetaData(selectedResume).title ||
-                              "Untitled Resume"}
+                            {selectedResume.title ||"Untitled Resume"}
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             Ready for submission
