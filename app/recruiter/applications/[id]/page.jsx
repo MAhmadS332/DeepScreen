@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use, useCallback } from "react";
 import { api } from "@/utils/api";
 import resumeApi from "@/utils/resume_api";
 
@@ -29,15 +29,12 @@ export default function JobApplicationsPage({ params }) {
   const [isShortlistModalOpen, setIsShortlistModalOpen] = useState(false);
   const [searching, setSearching] = useState(false);
   const [stageFilter, setStageFilter] = useState("all");
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkAction, setBulkAction] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    if (!jobId) return;
-    fetchJobAndApps();
-  }, [jobId]);
-
-  const fetchJobAndApps = async () => {
+  const fetchJobAndApps = useCallback(async () => {
     setLoading(true);
     try {
       const [jobData, appsData] = await Promise.all([
@@ -51,7 +48,13 @@ export default function JobApplicationsPage({ params }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobId]);
+
+  useEffect(() => {
+    if (!jobId) return;
+    const loadTimer = setTimeout(() => fetchJobAndApps(), 0);
+    return () => clearTimeout(loadTimer);
+  }, [jobId, fetchJobAndApps]);
 
   const handleShortlistConfirm = async () => {
     setShortlisting(true);
@@ -91,11 +94,41 @@ export default function JobApplicationsPage({ params }) {
 
   const handleUpdateStatus = async (appId, updates) => {
     try {
-      await api.patch(`/applications/${appId}//`, updates);
+      if (updates.advance) {
+        await api.post("/applications/bulk-action/", {
+          action: "advance",
+          application_ids: [appId],
+        });
+      } else {
+        await api.patch(`/applications/${appId}/`, updates);
+      }
       const data = await api.get(`/applications/job/${jobId}/`);
       setApplications(data);
+      setSelectedIds((ids) => ids.filter((id) => id !== appId));
     } catch (err) {
-      alert("Failed to update status");
+      setError(err.message || "Failed to update status");
+    }
+  };
+
+  const handleSelect = (appId, selected) => {
+    setSelectedIds((ids) => selected ? [...new Set([...ids, appId])] : ids.filter((id) => id !== appId));
+  };
+
+  const handleBulkAction = async (action) => {
+    if (!selectedIds.length) return;
+    setBulkAction(action);
+    setError("");
+    try {
+      await api.post("/applications/bulk-action/", {
+        action,
+        application_ids: selectedIds,
+      });
+      await fetchJobAndApps();
+      setSelectedIds([]);
+    } catch (err) {
+      setError(err.message || "Bulk action failed");
+    } finally {
+      setBulkAction("");
     }
   };
 
@@ -109,6 +142,17 @@ export default function JobApplicationsPage({ params }) {
     stageFilter === "all"
       ? applications
       : applications.filter((a) => a.current_stage === stageFilter);
+  const selectableApps = filteredApps;
+  const allVisibleSelected = selectableApps.length > 0 && selectableApps.every((app) => selectedIds.includes(app.application_id));
+  const selectedApps = applications.filter((app) => selectedIds.includes(app.application_id));
+  const canAdvance = selectedApps.some((app) => app.current_stage === "shortlisted");
+  const canReject = selectedApps.some((app) => app.current_stage !== "rejected");
+
+  const toggleSelectAll = () => {
+    setSelectedIds(allVisibleSelected
+      ? selectedIds.filter((id) => !selectableApps.some((app) => app.application_id === id))
+      : [...new Set([...selectedIds, ...selectableApps.map((app) => app.application_id)])]);
+  };
 
   const stageCounts = applications.reduce((acc, a) => {
     acc[a.current_stage] = (acc[a.current_stage] || 0) + 1;
@@ -235,6 +279,23 @@ export default function JobApplicationsPage({ params }) {
         ))}
       </div>
 
+      {filteredApps.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+          <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+            <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAll} className="h-4 w-4 accent-emerald-500" />
+            Select visible ({selectedIds.length} selected)
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => handleBulkAction("advance")} disabled={!canAdvance || !!bulkAction} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">
+              {bulkAction === "advance" ? "Advancing..." : "Advance selected"}
+            </button>
+            <button onClick={() => handleBulkAction("reject")} disabled={!canReject || !!bulkAction} className="rounded-lg bg-red-500/10 px-3 py-2 text-xs font-bold text-red-400 disabled:opacity-40">
+              {bulkAction === "reject" ? "Rejecting..." : "Reject selected"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {filteredApps.length === 0 ? (
         <div className="py-24 text-center glass rounded-2xl border-dashed border-2 border-border">
           <HiOutlineUserCircle className="w-14 h-14 text-muted-foreground mx-auto mb-4 opacity-20" />
@@ -252,6 +313,8 @@ export default function JobApplicationsPage({ params }) {
               key={app.application_id}
               app={app}
               rank={i + 1}
+              selected={selectedIds.includes(app.application_id)}
+              onSelect={handleSelect}
               onUpdateStatus={handleUpdateStatus}
               onStartChat={() => handleStartChat(app)}
               showMessageButton={job?.is_shortlisted}

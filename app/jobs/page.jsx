@@ -580,7 +580,7 @@ export default function JobsPage() {
                                 </div>
                               </div>
 
-                              {/* Description */}
+                              {/* Description
                               {job.job_description && (
                                 <p className="mt-3 text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                                   {job.job_description}
@@ -600,7 +600,7 @@ export default function JobsPage() {
                               </div>
 
                               {/* Footer */}
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-border">
+                              {/*<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-border">
                                 <div className="flex gap-2 flex-wrap items-center min-w-0">
                                   {job.key_skills?.length > 0 ? (
                                     job.key_skills.slice(0, 3).map((skill) => (
@@ -618,11 +618,11 @@ export default function JobsPage() {
                                       +{job.key_skills.length - 3} more
                                     </span>
                                   )}
-                                </div>
-                                <div className="flex items-center gap-2 text-sm font-bold text-emerald-500 group-hover:gap-3 transition-all shrink-0">
+                                </div> */}
+                                {/* <div className="flex items-center gap-2 text-sm font-bold text-emerald-500 group-hover:gap-3 transition-all shrink-0">
                                   View Details <HiOutlineChevronRight className="w-4 h-4" />
-                                </div>
-                              </div>
+                                </div> */}
+                              {/* </div> */}
                             </div>
                           </div>
                         </Link>

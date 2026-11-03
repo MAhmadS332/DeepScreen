@@ -77,7 +77,8 @@ export default function CreateAIInterviewPage() {
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   }, [chatMessages]);
 
@@ -362,8 +363,8 @@ export default function CreateAIInterviewPage() {
                     Direct Parameter Override
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    Manually formulate metrics weights, assessment metrics rules,
-                    and system logic guidelines directly.
+                    Manually formulate metrics weights, assessment metrics
+                    rules, and system logic guidelines directly.
                   </p>
                 </button>
               </div>
@@ -404,7 +405,10 @@ export default function CreateAIInterviewPage() {
                 </div>
 
                 {/* Scrollable Chat Area */}
-                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-5 bg-black/[0.08]">
+                <div
+                  ref={chatContainerRef}
+                  className="flex-1 overflow-y-auto p-6 space-y-5 bg-black/[0.08]"
+                >
                   {chatMessages.map((msg, i) => (
                     <div
                       key={i}
@@ -678,6 +682,7 @@ export default function CreateAIInterviewPage() {
                           </span>
                         </div>
                       </div>
+                      {/* Pass score card — normalize fraction vs percentage */}
                       <div className="p-4 bg-secondary/40 border border-border rounded-xl flex items-center gap-3">
                         <HiOutlineShieldCheck className="w-5 h-5 text-emerald-400" />
                         <div>
@@ -685,7 +690,10 @@ export default function CreateAIInterviewPage() {
                             PASS SELECTION RATIO
                           </span>
                           <span className="text-sm font-bold text-emerald-400">
-                            {activeConfig.passing_score}% Accuracy Score
+                            {activeConfig.passing_score <= 1
+                              ? Math.round(activeConfig.passing_score * 100)
+                              : activeConfig.passing_score}
+                            % Accuracy Score
                           </span>
                         </div>
                       </div>
@@ -703,26 +711,38 @@ export default function CreateAIInterviewPage() {
 
                     <div className="space-y-3">
                       <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block flex items-center gap-1.5">
-                        <HiOutlineStar className="w-4 h-4 text-emerald-400" />{" "}
-                        Evaluation Vectors & Balanced Weights
+                        <HiOutlineStar className="w-4 h-4 text-emerald-400" />
+                        Evaluation Criteria
                       </span>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {Object.entries(
-                          activeConfig.evaluation_criteria || {},
-                        ).map(([key, val]) => (
-                          <div
-                            key={key}
-                            className="p-4 bg-secondary/30 border border-border rounded-xl flex flex-col justify-between gap-1.5"
-                          >
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-tight text-[10px]">
-                              {key.replace(/_/g, " ")}
-                            </span>
-                            <span className="text-xl font-black text-emerald-400">
-                              {Math.round(val * 100)}%
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+
+                      {typeof activeConfig.evaluation_criteria === "string" ? (
+                        <div className="p-4 bg-secondary/30 border border-border rounded-xl">
+                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                            {activeConfig.evaluation_criteria}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {Object.entries(
+                            activeConfig.evaluation_criteria || {},
+                          ).map(([key, val]) => {
+                            console.log("key:", key, "val", val);
+                            return (
+                              <div
+                                key={key}
+                                className="p-4 bg-secondary/30 border border-border rounded-xl flex flex-col justify-between gap-1.5"
+                              >
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-tight text-[10px]">
+                                  {key.replace(/_/g, " ")}
+                                </span>
+                                <span className="text-xl font-black text-emerald-400">
+                                  {Math.round(val * 100)}%
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
 

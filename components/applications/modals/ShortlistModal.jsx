@@ -42,7 +42,7 @@ export default function ShortlistModal({ isOpen, onClose, onConfirm, jobTitle, t
                         <div className="mt-5 p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/10 flex gap-2.5">
                             <HiOutlineExclamationTriangle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
                             <p className="text-[11px] text-yellow-500/80 leading-relaxed">
-                                AI shortlisting uses vector embeddings to compare resumes against job requirements. This process cannot be undone.
+                                AI shortlisting ranks candidates for your review. You decide who advances, is rejected, or returns to pending.
                             </p>
                         </div>
 

@@ -18,7 +18,7 @@ import {
 import StageBadge from './StageBadge';
 import ScoreBar from './ScoreBar';
 
-function CandidateCard({ app, rank, onUpdateStatus, onStartChat, showMessageButton }) {
+function CandidateCard({ app, rank, selected, onSelect, onUpdateStatus, onStartChat, showMessageButton }) {
     const [expanded, setExpanded] = useState(false);
   console.log(app.shortlist_score);
   const sr = app.stage_results?.shortlist;
@@ -41,6 +41,13 @@ function CandidateCard({ app, rank, onUpdateStatus, onStartChat, showMessageButt
             className="bg-card border border-border hover:border-emerald-500/25 rounded-xl overflow-hidden transition-all"
         >
             <div className="p-4 md:p-5 flex flex-col lg:flex-row items-start lg:items-center gap-4">
+                <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={(event) => onSelect(app.application_id, event.target.checked)}
+                    aria-label={`Select ${displayName}`}
+                    className="h-4 w-4 shrink-0 accent-emerald-500"
+                />
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0
                     ${rank === 1 ? 'bg-yellow-500/10 text-yellow-500' :
                       rank === 2 ? 'bg-slate-400/20 text-slate-400' :
@@ -88,7 +95,7 @@ function CandidateCard({ app, rank, onUpdateStatus, onStartChat, showMessageButt
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center min-w-[80px]">
+                <div className="flex flex-col items-center min-w-20">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">AI Score</span>
                     {app.shortlist_score != null ? (
                         <div className="flex items-center gap-1.5">
@@ -104,18 +111,18 @@ function CandidateCard({ app, rank, onUpdateStatus, onStartChat, showMessageButt
                     )}
                 </div>
 
-                <div className="min-w-[120px] text-center">
+                <div className="min-w-30 text-center">
                     <StageBadge stage={app.current_stage} />
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                    <button
+                    {app.current_stage !== 'rejected' && <button
                         onClick={() => onUpdateStatus(app.application_id, { status: 'rejected', current_stage: 'rejected' })}
                         className="p-2 rounded-lg bg-red-500/5 text-red-400 hover:bg-red-500/15 border border-red-500/10 transition-all"
                         title="Reject"
                     >
                         <HiOutlineXCircle className="w-4 h-4" />
-                    </button>
+                    </button>}
                     {app.current_stage === 'applied' && (
                         <button
                             onClick={() => onUpdateStatus(app.application_id, { current_stage: 'shortlisted', status: 'in_progress' })}
@@ -123,6 +130,15 @@ function CandidateCard({ app, rank, onUpdateStatus, onStartChat, showMessageButt
                             title="Shortlist"
                         >
                             <HiOutlineCheckCircle className="w-4 h-4" />
+                        </button>
+                    )}
+                    {app.current_stage === 'shortlisted' && (
+                        <button
+                            onClick={() => onUpdateStatus(app.application_id, { advance: true })}
+                            className="p-2 rounded-lg bg-blue-500/5 text-blue-400 hover:bg-blue-500/15 border border-blue-500/10 transition-all"
+                            title="Advance to next stage"
+                        >
+                            <HiOutlineArrowTrendingUp className="w-4 h-4" />
                         </button>
                     )}
                     {onStartChat && showMessageButton && (

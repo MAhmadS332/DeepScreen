@@ -84,12 +84,12 @@ export default function RecruiterInterviewDashboard() {
   }
 
   return (
-    <div className="space-y-6 px-12 pb-12">
+    <div className="space-y-6 px-6 pb-6">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span className="text-foreground font-semibold">Live Interviews</span>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
             <HiOutlineVideoCamera className="w-7 h-7" />
@@ -111,7 +111,7 @@ export default function RecruiterInterviewDashboard() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-3 gap-4">
         {[
           {
             label: "Jobs Configured",

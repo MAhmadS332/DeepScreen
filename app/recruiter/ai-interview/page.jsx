@@ -45,7 +45,7 @@ export default function RecruiterAIInterviews() {
 
   if (loading) {
     return (
-      <div className="space-y-6 px-12">
+      <div className="space-y-6 px-4 md:px-6 lg:px-8">
         <div className="h-4 w-48 bg-muted rounded animate-pulse" />
         <div className="h-10 w-64 bg-muted rounded-xl animate-pulse" />
         <div className="grid grid-cols-3 gap-4">{[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-muted rounded-2xl animate-pulse" />)}</div>
@@ -55,30 +55,26 @@ export default function RecruiterAIInterviews() {
   }
 
   return (
-    <div className="space-y-6 px-12">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span className="text-foreground font-semibold">AI Interviews</span>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className="space-y-6 px-4 md:px-6 lg:px-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0">
           <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
             <HiOutlineSpeakerWave className="w-7 h-7" />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">AI Interviews</h1>
-            <p className="text-muted-foreground mt-1">Configure, manage, and review AI-powered candidate interviews</p>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">AI Interviews</h1>
+            <p className="text-muted-foreground mt-1 text-sm">Configure, manage, and review AI-powered candidate interviews</p>
           </div>
         </div>
         <Link
           href="/recruiter/ai-interview/create"
-          className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 text-sm"
+          className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 text-xs sm:text-sm whitespace-nowrap shrink-0"
         >
           <HiOutlinePlus className="w-5 h-5" /> New Interview
         </Link>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {[
           { label: "Total Interviews", value: interviews.length, icon: HiOutlineMicrophone, color: "from-amber-500/10 to-amber-600/5 text-amber-500" },
           { label: "Total Questions", value: totalQuestions, icon: HiOutlineDocument, color: "from-blue-500/10 to-blue-600/5 text-blue-500" },

@@ -51,7 +51,7 @@ export default function RecruiterJobsPage() {
 
   if (loading)
     return (
-      <div className="space-y-6 px-12">
+      <div className="space-y-6 px-4 md:px-6 lg:px-8">
         <div className="h-4 w-48 bg-muted rounded animate-pulse" />
         <div className="h-10 w-64 bg-muted rounded-xl animate-pulse" />
         <div className="grid grid-cols-3 gap-4">{[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-muted rounded-2xl animate-pulse" />)}</div>
@@ -60,30 +60,26 @@ export default function RecruiterJobsPage() {
     );
 
   return (
-    <div className="space-y-6 px-12">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span className="text-foreground font-semibold">Jobs</span>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className="space-y-6 px-4 md:px-6 lg:px-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0">
           <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
             <HiOutlineBriefcase className="w-7 h-7" />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Job Management</h1>
-            <p className="text-muted-foreground mt-1">Create and manage your open positions</p>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">Job Management</h1>
+            <p className="text-muted-foreground mt-1 text-sm">Create and manage your open positions</p>
           </div>
         </div>
         <Link
           href="/recruiter/jobs/create"
-          className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 text-sm"
+          className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 text-xs sm:text-sm whitespace-nowrap shrink-0"
         >
           <HiOutlinePlus className="w-5 h-5" /> Post New Job
         </Link>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {[
           { label: 'Total Jobs', value: jobs.length, icon: HiOutlineClipboardDocumentList, color: 'from-blue-500/10 to-blue-600/5 text-blue-500' },
           { label: 'Open Positions', value: openJobs, icon: HiOutlineBriefcase, color: 'from-emerald-500/10 to-emerald-600/5 text-emerald-500' },
@@ -154,9 +150,7 @@ export default function RecruiterJobsPage() {
                       {job.status}
                     </span>
                     <span className="text-xs">{new Date(job.posted_date).toLocaleDateString()}</span>
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold">
-                      <HiOutlineUserGroup size={14} /> {job.applications_count || 0} applicants
-                    </span>
+                    
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

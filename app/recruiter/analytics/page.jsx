@@ -76,28 +76,28 @@ export default function RecruiterAssessmentsPage() {
     );
 
   return (
-    <div className="w-full px-4 md:px-6 space-y-8">
+    <div className="w-full px-4 md:px-6 lg:px-8 space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Assessments
-            </h1>
-            <div className="absolute -bottom-1 left-0 w-8 h-0.5 bg-gradient-to-r from-emerald-500 to-emerald-500/0 rounded-full" />
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-500 shrink-0">
+            <HiOutlineBeaker className="w-7 h-7" />
           </div>
-          <div className="h-8 w-px bg-border/60" />
-          <span className="text-xs font-semibold text-muted-foreground/50 bg-secondary/40 px-3 py-1.5 rounded-full border border-border/50">
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground truncate">Assessments</h1>
+            <p className="text-muted-foreground mt-1 text-sm">Create and manage coding assessments for candidates</p>
+          </div>
+          <span className="text-xs font-semibold text-muted-foreground/60 bg-secondary/50 px-3 py-1.5 rounded-full border border-border">
             {filteredAssessments.length} total
           </span>
         </div>
         <div className="flex gap-3">
-          <div className="relative group">
+          <div className="relative group flex-1 md:flex-initial">
             <HiOutlineMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search assessments..."
-              className="pl-9 pr-4 py-2.5 rounded-xl bg-secondary/50 border border-border focus:border-emerald-500 outline-none transition-all w-full md:w-56 text-sm"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-secondary/50 border border-border focus:border-emerald-500 outline-none transition-all text-sm"
             />
           </div>
           <button

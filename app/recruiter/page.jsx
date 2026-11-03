@@ -163,7 +163,7 @@ function ActivityItem({ a, i }) {
 /* ── Loading Skeleton ── */
 function DashboardSkeleton() {
   return (
-    <div className="space-y-8 sm:space-y-10 p-4 md:px-8 pb-4 max-w-7xl mx-auto w-full min-w-0">
+    <div className="space-y-8 sm:space-y-10 p-4 md:px-6 lg:px-8 pb-4 max-w-7xl mx-auto w-full min-w-0">
       <div className="flex items-center gap-3 sm:gap-4">
         <Skeleton className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shrink-0" />
         <div className="space-y-2 flex-1 min-w-0">
@@ -278,7 +278,7 @@ export default function RecruiterDashboard() {
     'text-emerald-500 text-xs sm:text-sm font-bold hover:underline flex items-center gap-1 bg-emerald-500/10 px-3 py-1.5 rounded-xl hover:bg-emerald-500/20 transition-all shrink-0';
 
   return (
-    <div className="space-y-8 sm:space-y-10 p-4 md:px-8 pb-4 max-w-7xl mx-auto w-full min-w-0 overflow-x-clip">
+    <div className="space-y-8 sm:space-y-10 p-4 md:px-6 lg:px-8 pb-4 max-w-7xl mx-auto w-full min-w-0 overflow-x-clip">
       {/* ═══ Header (candidate header style) ═══ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">

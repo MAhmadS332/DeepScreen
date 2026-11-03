@@ -85,6 +85,8 @@ export default function RecruiterAIInterviewDetail() {
       const res = await api.patch(`/ai-interviews/${id}/`, form);
       setInterview({ ...interview, ...res });
       alert("Interview configuration updated");
+      router.push(`/recruiter/ai-interview`);
+      
     } catch (e) {
       alert(e.message || "Failed to update");
     } finally {
@@ -151,7 +153,7 @@ export default function RecruiterAIInterviewDetail() {
               <HiOutlineUserGroup className="w-4 h-4 text-muted-foreground" /> View Sessions
             </Link>
             
-            <div className="flex items-center bg-black/20 p-1.5 rounded-xl border border-border/80">
+            {/* <div className="flex items-center bg-black/20 p-1.5 rounded-xl border border-border/80">
               <button
                 onClick={() => setActiveTab("config")}
                 className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
@@ -172,7 +174,7 @@ export default function RecruiterAIInterviewDetail() {
               >
                 <HiOutlineSparkles className="w-4 h-4" /> AI Assistant
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -334,7 +336,13 @@ export default function RecruiterAIInterviewDetail() {
                   <button
                     onClick={() => {
                       const name = prompt("Metric name (e.g. Communication):");
-                      if (name) setForm({ ...form, evaluation_criteria: { ...form.evaluation_criteria, [name]: 0.2 } });
+                      const val = prompt("Metric weight (0.0 - 1.0):");
+                      if (name && val) {
+                        const weight = parseFloat(val);
+                        if (!isNaN(weight) && weight >= 0 && weight <= 1) {
+                          setForm({ ...form, evaluation_criteria: { ...form.evaluation_criteria, [name]: weight } });
+                        }
+                      }
                     }}
                     className="flex items-center gap-2 text-emerald-400 font-black text-xs uppercase tracking-widest hover:underline"
                   >
@@ -344,7 +352,9 @@ export default function RecruiterAIInterviewDetail() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {Object.entries(form.evaluation_criteria).map(([name, weight]) => (
+                    
                     <div key={name} className="flex items-center justify-between p-6 rounded-xl bg-secondary/30 border border-border transition-all hover:border-border/100">
+                      {console.log("name:", name, "weight", weight)}
                       <div className="space-y-1.5 flex-1 pr-4">
                         <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">{name.replace(/_/g, " ")}</span>
                         <div className="flex items-center gap-3">
@@ -392,6 +402,8 @@ export default function RecruiterAIInterviewDetail() {
                     <HiOutlinePlusCircle className="w-4 h-4" /> Add Manually
                   </button>
                 </div>
+
+                {console.log(form.questions)}
 
                 <div className="space-y-4">
                   {form.questions.map((q, idx) => (

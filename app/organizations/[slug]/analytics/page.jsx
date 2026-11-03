@@ -65,7 +65,7 @@ export default function OrgAnalyticsPage() {
       <h1 className="text-3xl font-bold text-foreground">Hiring Analytics</h1>
       <p className="text-muted-foreground mt-1">{orgData.name} &mdash; Overall hiring performance</p>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid sm:grid-cols-4 gap-4">
         {[
           { label: 'Total Jobs', value: ov.total_jobs, icon: HiOutlineBriefcase, color: 'from-blue-500/10 to-blue-600/5 text-blue-500' },
           { label: 'Applications', value: ov.total_applications, icon: HiOutlineDocumentText, color: 'from-purple-500/10 to-purple-600/5 text-purple-500' },
@@ -85,7 +85,7 @@ export default function OrgAnalyticsPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid sm:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
           className="bg-card border border-border rounded-[2rem] p-6">
           <h2 className="text-lg font-bold text-foreground mb-5">Applications by Status</h2>
